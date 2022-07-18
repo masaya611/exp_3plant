@@ -6,7 +6,6 @@ import numpy as np
 import argparse
 import sys
 import torch
-from equipments import *
 from environments import Environment
 from maddpg import MaddpgAgents # 変更後 masa
 
@@ -73,7 +72,6 @@ agent4_log = []
 # -------- plot用' ----------
 
 
-
 for episode in tqdm.trange(args.num_episode):
     obs_n = env.reset()
     episode_reward = 0
@@ -90,12 +88,8 @@ for episode in tqdm.trange(args.num_episode):
         assert len(obs_n) == args.num_pv
         total_reward = []
         env.steps = t
-        if episode <= 15000:
-            action_n = agent.get_action(obs_n)
-            assert len(action_n) == args.num_pv
-        else:
-            # action_n = agent.get_action(obs_n, greedy=True)
-            action_n = agent.get_action(obs_n, greedy=False)
+        action_n = agent.get_action(obs_n)
+        assert len(action_n) == args.num_pv
         next_obs_n, reward_n, done, _ = env.step(action_n, obs_n)
     # ----- 編集中2 ----------------------------------------------------------------
 
@@ -150,3 +144,4 @@ for episode in tqdm.trange(args.num_episode):
         print("Episode %d finished | Episode reward %f" % (episode, episode_reward))
 
 print("args", args)
+#-----編集中2'----------------------------------------------------------------
