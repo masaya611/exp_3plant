@@ -1,20 +1,15 @@
-import random
-import pprint
-import pickle
 import tqdm
 import numpy as np
 import argparse
-import sys
-import torch
 from environments import Environment
-from maddpg import MaddpgAgents # 変更後 masa
+from maddpg import MaddpgAgents
 
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 """
 obs_n: n個のAgentのobservation
 """
-#-----編集中1----------------------------------------------------------------
-#------args-------------------------------------------------------------------
+# -----編集中1----------------------------------------------------------------
+# ------args-------------------------------------------------------------------
 parser = argparse.ArgumentParser(description='Set parameters.')
 parser.add_argument('--num_episode', default=20000, type=int, help='Number of episode')
 parser.add_argument('--max_steps', default=200, type=int, help='Number of max steps')
@@ -22,28 +17,29 @@ parser.add_argument('--memory_size', default=10000, type=int, help='Number of me
 parser.add_argument('--initial_memory_size', default=100000, type=int, help='Number of initial memory size')
 parser.add_argument('--lr', default=0.01, type=float, help='Learning rate of Agents')
 
-#agent config
+# agent config
 parser.add_argument('--num_pv', default=3, type=int, help='Number of PV Agents')
 parser.add_argument('--observation_space', default=2, type=int, help='Number of PV Agents')
-#demand config
+# demand config
 parser.add_argument('--demand', default="constant", type=str, help='type of Demand')
 
 args = parser.parse_args()
-#-------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 
-#各種設定
+# 各種設定
 # num_episode = 20000  #学習エピソード数（論文では25000）
 # max_steps = 200  # エピソードの最大ステップ数
 # memory_size = 10000  #replay bufferの大きさ
 # initial_memory_size = 100000  #最初貯める数
-#ログ用の設定
+# ログ用の設定
 episode_rewards = []
 num_average_epidodes = 100
 
 env = Environment(args)
 # env.n=3 -> env.n=2 (no building)
 # agent = MaddpgAgents(observation_space=1, action_space=2, num_agent=env.n, memory_size=memory_size)
-agent = MaddpgAgents(observation_space=args.observation_space, action_space=1, num_agent=args.num_pv,lr=args.lr, memory_size=args.memory_size)
+agent = MaddpgAgents(observation_space=args.observation_space, action_space=1, num_agent=args.num_pv, lr=args.lr,
+                     memory_size=args.memory_size)
 
 """
 省略
@@ -58,7 +54,7 @@ for step in range(initial_memory_size):
     state = next_state
 print('%d Data collected' % (initial_memory_size))
 """
-#-----編集中1'----------------------------------------------------------------
+# -----編集中1'----------------------------------------------------------------
 
 # -------- plot用 ----------
 reward_log = []
@@ -76,7 +72,7 @@ for episode in tqdm.trange(args.num_episode):
     obs_n = env.reset()
     episode_reward = 0
     reward_sum = [0]
-    
+
     # -------- plot用 ----------
     agent1_episode_log = []
     agent2_episode_log = []
@@ -91,16 +87,16 @@ for episode in tqdm.trange(args.num_episode):
         action_n = agent.get_action(obs_n)
         assert len(action_n) == args.num_pv
         next_obs_n, reward_n, done, _ = env.step(action_n, obs_n)
-    # ----- 編集中2 ----------------------------------------------------------------
+        # ----- 編集中2 ----------------------------------------------------------------
 
-        #-------- total reward learning --------
+        # -------- total reward learning --------
 
         for i in range(args.num_pv):
             total_reward.append(sum(reward_n))
         episode_reward += sum(total_reward)
 
-        reward_sum = [x + y for (x, y) in zip(reward_sum, total_reward)] # plot用
-        num_steps = t # plot用
+        reward_sum = [x + y for (x, y) in zip(reward_sum, total_reward)]  # plot用
+        num_steps = t  # plot用
         # print("obs_n", obs_n)
         # print("next_obs_n", next_obs_n)
         # print("action_n", action_n)
@@ -108,7 +104,6 @@ for episode in tqdm.trange(args.num_episode):
         # print("done", done)
         agent.buffer.cache(obs_n, next_obs_n, action_n, total_reward, done)
         obs_n = next_obs_n
-        
 
         # -------- plot用 ----------
         agent1_episode_log.append(action_n[0][0])
@@ -117,24 +112,23 @@ for episode in tqdm.trange(args.num_episode):
         # -------- plot用' ----------
 
         if all(done):
-            #-------- total reward learning --------
-            reward_sum = [x / num_steps for x in reward_sum] # plot用
-            reward_log.append(reward_sum) # plot用
-            episode_reward_log.append(episode_reward / num_steps) # plot用
+            # -------- total reward learning --------
+            reward_sum = [x / num_steps for x in reward_sum]  # plot用
+            reward_log.append(reward_sum)  # plot用
+            episode_reward_log.append(episode_reward / num_steps)  # plot用
 
             agent1_log.append(agent1_episode_log)
             agent2_log.append(agent2_episode_log)
             agent3_log.append(agent3_episode_log)
             break
-    
 
-    np.save('./reward_log/reward_log_{0}'.format("0620"), reward_log) # plot用
-    np.save('./reward_log/episode_reward_log_{0}'.format("0620"), episode_reward_log) # plot用
-    np.save('./config_nums', config_nums) # plot用
+    np.save('./reward_log/reward_log_{0}'.format("0620"), reward_log)  # plot用
+    np.save('./reward_log/episode_reward_log_{0}'.format("0620"), episode_reward_log)  # plot用
+    np.save('./config_nums', config_nums)  # plot用
 
-    np.save('./action_log/agent1_action_price_log_{0}'.format("0620"), agent1_log) # plot用
-    np.save('./action_log/agent2_action_price_log_{0}'.format("0620"), agent2_log) # plot用
-    np.save('./action_log/agent3_action_price_log_{0}'.format("0606"), agent3_log) # plot用
+    np.save('./action_log/agent1_action_price_log_{0}'.format("0620"), agent1_log)  # plot用
+    np.save('./action_log/agent2_action_price_log_{0}'.format("0620"), agent2_log)  # plot用
+    np.save('./action_log/agent3_action_price_log_{0}'.format("0606"), agent3_log)  # plot用
 
     if episode > 40 and episode % 4 == 0:
         agent.update()
@@ -144,4 +138,4 @@ for episode in tqdm.trange(args.num_episode):
         print("Episode %d finished | Episode reward %f" % (episode, episode_reward))
 
 print("args", args)
-#-----編集中2'----------------------------------------------------------------
+# -----編集中2'----------------------------------------------------------------
