@@ -64,7 +64,6 @@ config_nums = []
 agent1_log = []
 agent2_log = []
 agent3_log = []
-agent4_log = []
 # -------- plot用' ----------
 
 
@@ -77,7 +76,6 @@ for episode in tqdm.trange(args.num_episode):
     agent1_episode_log = []
     agent2_episode_log = []
     agent3_episode_log = []
-    agent4_episode_log = []
     # -------- plot用' ----------
     # print("env.config_epi", env.config["solar_insolations"][-3:])
     for t in range(args.max_steps):
@@ -97,11 +95,6 @@ for episode in tqdm.trange(args.num_episode):
 
         reward_sum = [x + y for (x, y) in zip(reward_sum, total_reward)]  # plot用
         num_steps = t  # plot用
-        # print("obs_n", obs_n)
-        # print("next_obs_n", next_obs_n)
-        # print("action_n", action_n)
-        # print("total_reward", total_reward)
-        # print("done", done)
         agent.buffer.cache(obs_n, next_obs_n, action_n, total_reward, done)
         obs_n = next_obs_n
 
